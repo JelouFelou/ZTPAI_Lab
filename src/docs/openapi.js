@@ -14,7 +14,7 @@ const roomInput = { buildingId: positive, name: { type: "string", minLength: 1, 
 const password = { type: "string", minLength: 10, maxLength: 72, format: "password", description: "Maximum 72 UTF-8 bytes (bcrypt limit)." };
 const tag = (name, summary, operation) => ({ tags: [name], summary, ...operation });
 module.exports = {
-    openapi: "3.0.3", info: { title: "Room Booking API", version: "4.0.0", description: "Authentication, role-based access and private reservations. Demo credentials are listed in README.md." },
+    openapi: "3.0.3", info: { title: "Room Booking API", version: "5.0.0", description: "Authentication, private reservations and ADMIN audit log. Demo credentials are listed in README.md." },
     servers: [{ url: "/" }], security: [{ bearerAuth: [] }],
     tags: ["Auth", "Buildings", "Rooms", "Reservations", "Documentation"].map(name => ({ name })),
     components: {
@@ -42,6 +42,17 @@ module.exports = {
             .map(([code, description]) => [`Error${code}`, response(description, ref("Error"))]))
     },
     paths: {
+        "/api/admin/audit-log": { get: tag("Audit", "ADMIN: latest audit events", {
+            parameters: [
+                { name: 'page', in: 'query', schema: { type: 'integer', minimum: 1, default: 1 } },
+                { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 } },
+                { name: 'eventType', in: 'query', schema: { type: 'string', enum: ['reservation.created', 'reservation.cancelled'] } }
+            ],
+            responses: { 200: response('Newest first, data and pagination meta', { type: 'object', properties: {
+                data: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, event_type: text, payload: { type: 'object' }, created_at: date } } },
+                meta: { type: 'object', properties: { page: positive, limit: positive, total: { type: 'integer' }, totalPages: { type: 'integer' } } }
+            } }), ...errors(400, 401, 403, 500) }
+        }) },
         "/api/auth/register": { post: tag("Auth", "Register a USER (email normalized to lowercase)", { security: [], requestBody: body("Register"), responses: { 201: response("Created; never contains password hash", ref("User")), ...errors(400, 409, 500) } }) },
         "/api/auth/login": { post: tag("Auth", "Log in and receive an HS256 token", { security: [], requestBody: body("Login"), responses: { 200: response("JWT contains sub, role, iat and exp only", ref("Token")), ...errors(400, 401, 500) } }) },
         "/api/auth/me": { get: tag("Auth", "Current account", { responses: { 200: response("User without password hash", ref("User")), ...errors(401, 500) } }) },
