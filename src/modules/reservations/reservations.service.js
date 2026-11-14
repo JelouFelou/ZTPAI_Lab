@@ -45,7 +45,7 @@ function createReservationsService({ reservationsRepository, roomsRepository, ru
             const hasOverlap = activeReservations.some(b => {
                 const bStart = new Date(b.startTime).getTime();
                 const bEnd = new Date(b.endTime).getTime();
-                return start < bEnd && bStart < end;
+                return start <= bEnd && bStart <= end;
             });
 
             if (hasOverlap) {
