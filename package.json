@@ -1,0 +1,39 @@
+{
+  "name": "ztpai",
+  "version": "5.0.0",
+  "description": "Room Booking API: PostgreSQL, JWT authentication, authorization and OpenAPI",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "jest --runInBand",
+    "migrate:latest": "knex migrate:latest",
+    "migrate:rollback": "knex migrate:rollback",
+    "seed:run": "knex seed:run",
+    "double-booking": "node scripts/double-booking.js",
+    "seed:admin": "knex seed:run --specific=002_admin.js",
+    "report:04": "node scripts/build-report04.js",
+    "test:legacy": "node --test tests/*.test.js",
+    "test:unit": "jest --runInBand tests/unit",
+    "test:integration": "jest --runInBand tests/integration"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "knex": "^3.3.0",
+    "pg": "^8.23.1",
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^4.6.7"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "devDependencies": {
+    "jest": "^30.5.2",
+    "supertest": "^7.3.2"
+  }
+}
