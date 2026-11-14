@@ -74,15 +74,6 @@ Workflow `.github/workflows/ci.yml`: push do main i każdy PR, PostgreSQL z heal
 
 Repozytorium: https://github.com/JelouFelou/ZTPAI_Lab
 
-Zrzuty terminala VS Code i przeglądarki: `screenshots/zad5/`. Sprawozdanie: `ZTPAI_Adrian_Bober_5.pdf`. Dokumentacja poprzedniego etapu: `archiwum/README_04.md`.
+Dowód CI: [PR #1](https://github.com/JelouFelou/ZTPAI_Lab/pull/1), [czerwone uruchomienie](https://github.com/JelouFelou/ZTPAI_Lab/actions/runs/43617435186), [zielone uruchomienie](https://github.com/JelouFelou/ZTPAI_Lab/actions/runs/43617636286). PR został scalony po naprawie.
 
-Dowód CI: [PR #1](https://github.com/JelouFelou/ZTPAI_Lab/pull/1), [czerwone uruchomienie](https://github.com/JelouFelou/ZTPAI_Lab/actions/runs/43617435186), [zielone uruchomienie](https://github.com/JelouFelou/ZTPAI_Lab/actions/runs/43617636286). PR został scalony po naprawie. Wersję do oceny wskazuje tag `zadanie-05`; późniejszy commit zawiera gotowy PDF.
-
-Odtworzenie sprawozdania z zapisanych dowodów (Windows, Chrome):
-
-```sh
-npm install --prefix .tools --no-package-lock playwright-core
-npm run report:05
-```
-
-Generator korzysta z PNG i `reports/zad5-evidence.json`, sprawdza przepełnienie stron i tworzy PDF. `scripts/capture-vscode.ps1` wykonuje prawdziwe zrzuty panelu terminala w aktywnym VS Code na ekranie 1920×1080. `scripts/capture-web05.js` zapisuje obrazy rzeczywistych stron w Chrome. Ponowne wykonanie scenariusza `scripts/demo05.js` tworzy nowe dane demonstracyjne w API na porcie 3000; dowody do gotowego PDF są zachowane oddzielnie.
+Sprawozdania PDF, materiały zajęć, zrzuty ekranu, archiwum i pomocnicze narzędzia sprawozdania są przechowywane lokalnie, poza śledzonymi plikami repozytorium. Repozytorium zawiera kod aplikacji, testy, konfigurację uruchomienia, CI i instrukcję README.
