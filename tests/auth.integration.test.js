@@ -213,8 +213,8 @@ test("Zestaw 04: auth, uprawnienia, migracja i konfiguracja", async t => {
                     if (Number(status) >= 400) assert.ok(response.$ref.startsWith("#/components/responses/Error"));
                 }
             }
-            assert.equal(operations, 20);
-            evidence.checks.push("Swagger: 20 operacji, bearerAuth, wspólne $ref błędów, dokumentacja publiczna.");
+            assert.equal(operations, 21);
+            evidence.checks.push("Swagger: 21 operacji, bearerAuth, wspólne $ref błędów, dokumentacja publiczna.");
             const history = spawnSync("git", ["log", "-p", "--all"], { encoding: "utf8", windowsHide: true });
             evidence.gitHistory = { exitCode: history.status, result: history.status === 0
                 ? (history.stdout.split(/\r?\n/).some(line => /JWT_SECRET=|password=/i.test(line)) ? "Potential secret patterns found; manual review required" : "No matching secret patterns")

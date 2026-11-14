@@ -1,0 +1,179 @@
+@baseUrl = http://localhost:3000
+
+### Publiczna dokumentacja, przycisk Authorize przyjmuje accessToken z logowania
+GET {{baseUrl}}/api/docs/
+
+### Rejestracja właściciela (uruchom raz; kolejne próby: 409 EMAIL_TAKEN)
+# @name registerOwner
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{"email":"Jan.Kowalski@example.com","password":"bardzo-dlugie-haslo"}
+
+### Rejestracja drugiego użytkownika
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{"email":"anna.nowak@example.com","password":"inne-dlugie-haslo"}
+
+### Login właściciela
+# @name ownerLogin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{"email":"JAN.KOWALSKI@example.com","password":"bardzo-dlugie-haslo"}
+
+### Login obcego USER-a
+# @name otherLogin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{"email":"anna.nowak@example.com","password":"inne-dlugie-haslo"}
+
+### Login ADMIN-a z seeda 002_admin.js (dane przykładowe z .env.example)
+# @name adminLogin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{"email":"admin@example.com","password":"Admin-demo-2026!"}
+
+### /me bez hasha
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{ownerLogin.response.body.accessToken}}
+
+### Próba nadania roli: 400
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{"email":"attempt@example.com","password":"bardzo-dlugie-haslo","role":"ADMIN"}
+
+### Krótkie hasło: 400
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{"email":"short@example.com","password":"short"}
+
+### Duplikat emaila niezależnie od wielkości liter: 409 EMAIL_TAKEN
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{"email":"JAN.KOWALSKI@EXAMPLE.COM","password":"bardzo-dlugie-haslo"}
+
+### Zły email: 401 INVALID_CREDENTIALS
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{"email":"missing@example.com","password":"wrong-password"}
+
+### Złe hasło: ten sam kod i komunikat 401
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{"email":"jan.kowalski@example.com","password":"wrong-password"}
+
+### Brak tokenu: 401
+GET {{baseUrl}}/api/rooms
+
+### Basic: 401
+GET {{baseUrl}}/api/auth/me
+Authorization: Basic abc
+
+### Bearer bez tokenu: 401
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer
+
+### Nieprawidłowy token: 401
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer invalid.token.signature
+
+### USER przegląda sale: 200
+GET {{baseUrl}}/api/rooms
+Authorization: Bearer {{ownerLogin.response.body.accessToken}}
+
+### USER nie tworzy budynków: 403
+POST {{baseUrl}}/api/buildings
+Authorization: Bearer {{ownerLogin.response.body.accessToken}}
+Content-Type: application/json
+
+{"name":"Budynek USER","address":"ul. Testowa 1"}
+
+### ADMIN tworzy budynek
+# @name newBuilding
+POST {{baseUrl}}/api/buildings
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+Content-Type: application/json
+
+{"name":"Budynek zadanie 04","address":"ul. Testowa 1"}
+
+### ADMIN tworzy salę
+# @name newRoom
+POST {{baseUrl}}/api/rooms
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+Content-Type: application/json
+
+{"buildingId":{{newBuilding.response.body.id}},"name":"Sala 04","capacity":30}
+
+### Rezerwacja — userId pochodzi wyłącznie z tokenu
+# @name ownReservation
+POST {{baseUrl}}/api/reservations
+Authorization: Bearer {{ownerLogin.response.body.accessToken}}
+Content-Type: application/json
+
+{"roomId":{{newRoom.response.body.id}},"participants":10,"startTime":"2099-10-01T10:00:00Z","endTime":"2099-10-01T11:00:00Z"}
+
+### Próba podszycia się przez userId: 400
+POST {{baseUrl}}/api/reservations
+Authorization: Bearer {{ownerLogin.response.body.accessToken}}
+Content-Type: application/json
+
+{"roomId":{{newRoom.response.body.id}},"participants":10,"startTime":"2099-10-02T10:00:00Z","endTime":"2099-10-02T11:00:00Z","userId":1}
+
+### Właściciel: 200
+GET {{baseUrl}}/api/reservations/{{ownReservation.response.body.id}}
+Authorization: Bearer {{ownerLogin.response.body.accessToken}}
+
+### Obcy USER: 404
+GET {{baseUrl}}/api/reservations/{{ownReservation.response.body.id}}
+Authorization: Bearer {{otherLogin.response.body.accessToken}}
+
+### ADMIN: 200
+GET {{baseUrl}}/api/reservations/{{ownReservation.response.body.id}}
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+### USER widzi tylko swoje, paginacja i filtry zachowane
+GET {{baseUrl}}/api/reservations?limit=10&page=1&sort=-startTime
+Authorization: Bearer {{ownerLogin.response.body.accessToken}}
+
+### USER nie może użyć filtra userId: 403
+GET {{baseUrl}}/api/reservations?userId={{registerOwner.response.body.id}}
+Authorization: Bearer {{ownerLogin.response.body.accessToken}}
+
+### ADMIN może filtrować po userId
+GET {{baseUrl}}/api/reservations?userId={{registerOwner.response.body.id}}&sort=-participants
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+### Obcy USER nie anuluje: 404
+PATCH {{baseUrl}}/api/reservations/{{ownReservation.response.body.id}}/cancel
+Authorization: Bearer {{otherLogin.response.body.accessToken}}
+
+### Właściciel anuluje: 200
+PATCH {{baseUrl}}/api/reservations/{{ownReservation.response.body.id}}/cancel
+Authorization: Bearer {{ownerLogin.response.body.accessToken}}
+
+### ADMIN: powtórne anulowanie pozostaje idempotentne
+PATCH {{baseUrl}}/api/reservations/{{ownReservation.response.body.id}}/cancel
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+### ADMIN aktualizuje salę
+PATCH {{baseUrl}}/api/rooms/{{newRoom.response.body.id}}
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+Content-Type: application/json
+
+{"capacity":35}
+
+### ADMIN nie usuwa sali z historią rezerwacji: 409 REFERENCE_CONFLICT
+DELETE {{baseUrl}}/api/rooms/{{newRoom.response.body.id}}
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+# Pełna macierz oraz zmiana podpisu/payloadu i rzeczywiste wygaśnięcie 10s:
+# npm.cmd test -> test_04.results.http + reports/generated/zad4/evidence.json

@@ -12,6 +12,7 @@
     "double-booking": "node scripts/double-booking.js",
     "seed:admin": "knex seed:run --specific=002_admin.js",
     "report:04": "node scripts/build-report04.js",
+    "report:05": "node scripts/build-report05.js",
     "test:legacy": "node --test tests/*.test.js",
     "test:unit": "jest --runInBand tests/unit",
     "test:integration": "jest --runInBand tests/integration"
